@@ -43,7 +43,7 @@ jobs:
       - name: Checkout Playwright test repository
         uses: actions/checkout@v3
         with:
-          repository: https://github.com/iodunsi/pwright
+          repository: iodunsi/pwright
           path: playwright-test-repo
 
       # Install Playwright dependencies & browsers
