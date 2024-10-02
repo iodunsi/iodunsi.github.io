@@ -32,7 +32,8 @@ jobs:
       - name: Generate Hexo site
         run: |
             npx hexo generate
-            npx hexo server
+            npx hexo server &
+            echo $! > hexo.pid
 
       # Wait for the Hexo server to be ready
       - name: Wait for Hexo server to start
@@ -56,3 +57,9 @@ jobs:
       - name: Run Playwright tests
         working-directory: playwright-test-repo
         run: npx playwright test --config=playwright.config.js
+
+      # Stop the Hexo server
+      - name: Stop Hexo server
+        if: always()
+        run: |
+          kill $(cat hexo.pid)
