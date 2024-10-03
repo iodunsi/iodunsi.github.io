@@ -51,7 +51,7 @@ jobs:
         working-directory: playwright-test-repo
         run: | 
             npm ci
-            npx playwright install
+            npx playwright install --with-deps
 
       # Run the Playwright tests against the running Hexo site
       - name: Run Playwright tests
