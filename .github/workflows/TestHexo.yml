@@ -1,0 +1,65 @@
+name: Test Hexo Site
+
+on: #on push or pull rq
+  push:
+    branches:
+      - main  
+  pull_request:
+    branches:
+      - main  
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Hexo repository  
+        uses: actions/checkout@v3   #current repo
+
+      # Set up Node.js environment
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '22'  # Specify your Node.js version
+          cache: 'npm'
+
+      # Install dependencies
+      - name: Install dependencies
+        run: npm ci #installs files from package.json
+        
+
+      # Generate & serve
+      - name: Generate Hexo site
+        run: |
+            npx hexo generate
+            npx hexo server &
+            echo $! > hexo.pid
+
+      # Wait for the Hexo server to be ready
+      - name: Wait for Hexo server to start
+        run: npx wait-on http://localhost:4000/IS373_Hexo/
+
+      # Checkout the Playwright test repository and place it into a new folder/path
+      - name: Checkout Playwright test repository
+        uses: actions/checkout@v3
+        with:
+          repository: iodunsi/pwright
+          path: playwright-test-repo
+
+      # Install Playwright dependencies & browsers
+      - name: Install Playwright dependencies
+        working-directory: playwright-test-repo
+        run: | 
+            npm ci
+            npx playwright install --with-deps
+
+      # Run the Playwright tests against the running Hexo site
+      - name: Run Playwright tests
+        working-directory: playwright-test-repo
+        run: npx playwright test --config=playwright.config.js
+
+      # Stop the Hexo server
+      - name: Stop Hexo server
+        if: always()
+        run: |
+          kill $(cat hexo.pid)
